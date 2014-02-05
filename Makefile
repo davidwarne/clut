@@ -13,7 +13,8 @@
 
 
 # Creating a static and shared library
-TARGET = libclut
+NAME = clut
+TARGET = lib$(NAME)
 STATIC = $(TARGET).a
 SHARED = $(TARGET).so
 
@@ -49,6 +50,8 @@ OCL_LINK_CONFIG =
 endif
 endif
 
+INSTALL_PREFIX = /usr/local
+
 INCLUDE = $(OCL_COMPILE_CONFIG) 
 LIB = $(OCL_LINK_CONFIG) -lOpenCL
 
@@ -69,6 +72,19 @@ clut.o: clut.c
 clut_internal.o: clut_internal.c
 	$(CC) $(COPTS) -o $@ -c $< $(INCLUDE) 
 
+install: $(STATIC) $(SHARED)
+	mkdir -p $(INSTALL_PREFIX)/include/$(NAME)
+	mkdir -p $(INSTALL_PREFIX)/lib/$(NAME)
+	cp $(SHARED) $(INSTALL_PREFIX)/lib/$(NAME)/$(SHARED)
+	cp $(STATIC) $(INSTALL_PREFIX)/lib/$(NAME)/$(STATIC)
+	cp *.h $(INSTALL_PREFIX)/include/$(NAME)
+	chmod 755 $(INSTALL_PREFIX)/include/$(NAME)
+	chmod 755 $(INSTALL_PREFIX)/lib/$(NAME)
+	chmod 644 $(INSTALL_PREFIX)/lib/$(NAME)/$(STATIC)
+	chmod 755 $(INSTALL_PREFIX)/lib/$(NAME)/$(SHARED)
+	chmod 644 $(INSTALL_PREFIX)/include/$(NAME)/*.h
+
+
 # Standard make targets
-clean :
+clean:
 	@rm -f *.o $(STATIC) $(SHARED)
