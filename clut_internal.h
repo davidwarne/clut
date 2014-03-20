@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 
+
 #define CLUT_STATUS_NO_ERROR 0x0
 #define CLUT_STATUS_FATAL_ERROR 0x1
 #define CLUT_STATUS_MEMORY_ERROR 0x2

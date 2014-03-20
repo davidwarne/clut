@@ -1,38 +1,50 @@
+/**
+ * @file clut.h
+ * @brief A free OpenCL Utility Toolkit.
+ * @details Provides an API to simply construction of OpenCL applications.
+ *
+ * @author David J. Warne
+ * @author High Performance Computing and Research Support
+ * @author Queensland University of Technology
+ *
+ * @copyright GNU Public License version 3
+ */
 #ifndef __FREECLUT_H
 #define __FREECLUT_H
 
 #ifdef __APPLE__
-    #include <OpenCL/opencl.h>
+// why does apple just have to be different?
+#include <OpenCL/opencl.h>
 #else
-    #include <CL/opencl.h>
-#endif
+#include <CL/opencl.h>
+#endif // #ifdef __APPLE__
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // #ifdef _cplusplus
 
 /*Currently not worried about supporting windows, but in the future I may need to */
 #ifdef _WIN32
+    #error "Windows is not supported, please install a proper operating system."
 #else
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define FCAPI
 #define FCAPIENTRY
 
 typedef cl_uint CLenum;
 
-//#define     CLUT_CURRENT_DEVICE                 0x1
-//#define     CLUT_CURRENT_PROGRAM                0x2
-//#define     CLUT_CURRENT_COMMANDQUEUE           0x3
-//#define     CLUT_LAST_USED_KERNEL               0x4
-//#define     CLUT_LAST_QUEUED_COMMAND            0x5
+// these are for clutGet
+
 #define     CLUT_LAST_ERROR                     0x6
 #define     CLUT_SOURCE                         0x7
 #define     CLUT_BINARY                         0x8
 
-
+// defines for malloc and memcpy flags
 #define     CLUT_HOST_PTR                       0x1
 #define     CLUT_DEVICE_PTR                     0x0
 #define     CLUT_MALLOC_HOST_PTR                CLUT_HOST_PTR
@@ -42,12 +54,13 @@ typedef cl_uint CLenum;
 #define     CLUT_READ_WRITE                     0xC
 #define     CLUT_BANK_SELECT_0                  0x10
 #define     CLUT_BANK_SELECT_1                  0x20
-
+// memcpy directions
 #define     CLUT_MEMCPY_DEVICE2DEVICE           ((CLUT_DEVICE_PTR << 1) | CLUT_DEVICE_PTR)
 #define     CLUT_MEMCPY_DEVICE2HOST             ((CLUT_DEVICE_PTR << 1) | CLUT_HOST_PTR)
 #define     CLUT_MEMCPY_HOST2DEVICE             ((CLUT_HOST_PTR << 1) | CLUT_DEVICE_PTR)
 #define     CLUT_MEMCPY_HOST2HOST               ((CLUT_HOST_PTR << 1) | CLUT_HOST_PTR)
 
+// access to current OpenCL objects
 #define     CLUT_CURRENT_CONTEXT                clut_global_contexts[clut_global_current_context]
 #define     CLUT_CURRENT_QUEUE                  clut_global_command_queues[clut_global_current_context][clut_global_current_command_queue]
 #define     CLUT_CURRENT_PROGRAM                clut_global_programs[clut_global_current_context][clut_global_current_program]
@@ -58,6 +71,7 @@ typedef cl_uint CLenum;
 #define     CLUT_CURRENT_KERNEL_ARG(i)          clut_global_kernel_args[CLUT_CURRENT_KERNEL_GLOBAL_ID][(i)]
 #define     CLUT_CURRENT_KERNEL_ARG_SIZE(i)     clut_global_kernel_arg_sizes[CLUT_CURRENT_KERNEL_GLOBAL_ID][(i)]
 
+// access to current OpenCl object identifiers
 #define     CLUT_CURRENT_CONTEXT_ID             clut_global_current_context
 #define     CLUT_CURRENT_QUEUE_ID               clut_global_current_command_queue
 #define     CLUT_CURRENT_PROGRAM_ID             clut_global_current_program
@@ -65,36 +79,45 @@ typedef cl_uint CLenum;
 #define     CLUT_CURRENT_KERNEL_ID              clut_global_current_kernel
 #define     CLUT_CURRENT_KERNEL_GLOBAL_ID       (clut_global_current_device*CLUT_MAX_NUM_KERNELS_PER_DEVICE + clut_global_current_kernel)
 
+// current count of OpenCL objects
 #define     CLUT_NUM_CONTEXTS                   clut_global_context_count
 #define     CLUT_NUM_QUEUES                     clut_global_command_queue_count[clut_global_current_context]
 #define     CLUT_NUM_PROGRAMS                   clut_global_program_count[clut_global_current_context]
 #define     CLUT_NUM_DEVICES                    clut_global_device_count
 #define     CLUT_NUM_KERNELS                    clut_global_kernel_count[clut_global_current_device]
 
+
+// Altera SDK custom settings
+#ifdef __ALTERA__
+
+// size limits
+#define     CLUT_MAX_NUM_CONTEXTS               4
+#define     CLUT_MAX_NUM_QUEUES_PER_CONTEXT     28
+#define     CLUT_MAX_NUM_PROGRAMS_PER_CONTEXT   20
+#define     CLUT_MAX_NUM_ENQUEUED_KERNELS       1000
+#define     CLUT_MAX_NUM_DEVICES                1
+#define     CLUT_MAX_NUM_KERNELS_PER_DEVICE     32
+#define     CLUT_MAX_NUM_ARGS_PER_KERNEL        128
+#define     CLUT_MAX_KERNEL_ARGS_SIZE           256
+#define     CLUT_MAX_NUM_KERNELS                (CLUT_MAX_NUM_DEVICES * CLUT_MAX_NUM_KERNELS_PER_DEVICE) 
+
+// Altera FPGA device is classified as an ACCELERATOR
+#ifdef CL_DEVICE_TYPE_DEFAULT
+#undef CL_DEVICE_TYPE_DEFAULT
+#define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_ACCELERATOR
+#else
+#define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_ACCELERATOR
+#endif // # CL_DEVICE_TYPE_DEFAULT
+
 #ifndef CLUT_DEFAULT_DEVICE_PROGRAM_BUILD_OPTIONS
 #define     CLUT_DEFAULT_DEVICE_PROGRAM_BUILD_OPTIONS "-cl-fast-relaxed-math"
-#endif
+#endif // #ifdef CLUT_DEFAULT_PROGRAM_BUILD_OPTIONS
+#endif // #ifdef __ALTERA__
 
-#ifdef __ALTERA__
-#define     CLUT_MAX_NUM_CONTEXTS               4
-#define     CLUT_MAX_NUM_QUEUES_PER_CONTEXT     28
-#define     CLUT_MAX_NUM_PROGRAMS_PER_CONTEXT   20
-#define     CLUT_MAX_NUM_ENQUEUED_KERNELS       1000
-#define     CLUT_MAX_NUM_DEVICES                1
-#define     CLUT_MAX_NUM_KERNELS_PER_DEVICE     32
-#define     CLUT_MAX_NUM_ARGS_PER_KERNEL        128
-#define     CLUT_MAX_KERNEL_ARGS_SIZE           256
-#define     CLUT_MAX_NUM_KERNELS                (CLUT_MAX_NUM_DEVICES * CLUT_MAX_NUM_KERNELS_PER_DEVICE) 
-
-#ifdef CL_DEVICE_TYPE_DEFAULT
-#undef CL_DEVICE_TYPE_DEFAULT
-#define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_ACCELERATOR
-#else
-#define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_ACCELERATOR
-#endif
-#endif
-
+// NVidia SDK custom settings
 #ifdef __NVIDIA__
+// I can't find info on this for NVidia... maybe unbounded, but I've 
+// just set it to be the same as Altera till I get more information
 #define     CLUT_MAX_NUM_CONTEXTS               4
 #define     CLUT_MAX_NUM_QUEUES_PER_CONTEXT     28
 #define     CLUT_MAX_NUM_PROGRAMS_PER_CONTEXT   20
@@ -105,14 +128,26 @@ typedef cl_uint CLenum;
 #define     CLUT_MAX_KERNEL_ARGS_SIZE           256
 #define     CLUT_MAX_NUM_KERNELS                (CLUT_MAX_NUM_DEVICES * CLUT_MAX_NUM_KERNELS_PER_DEVICE) 
 
+// NVidia accelorators are GPUs
 #ifdef CL_DEVICE_TYPE_DEFAULT
 #undef CL_DEVICE_TYPE_DEFAULT
 #define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_GPU
 #else
 #define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_GPU
-#endif
-#endif
-#endif
+#endif // #ifdef CL_DEVICE_TYPE_DEFAULT
+#endif // #ifdef __NVIDIA__
+
+// AMD settings, currently not supported
+#ifdef __AMD__
+#error "AMD is not currently supported"
+#endif // #ifdef __AMD__
+
+// Intel settings, currently not supported
+#ifdef __INTEL__
+#error "Intel is not currently supported"
+#endif // #ifdef __INTEL__
+
+#endif // #ifdef _WIN32
 
 /*Device set up functions*/
 FCAPI void FCAPIENTRY clutInit(int, char **);
@@ -152,6 +187,7 @@ FCAPI int FCAPIENTRY clutPrintLastError(void);
 FCAPI int FCAPIENTRY clutErrorOccurred(void);
 #ifdef __cplusplus
 }
-#endif
+#endif // #ifdef __cplusplus
 
-#endif
+#endif // #ifndef __FREECLUT_H
+

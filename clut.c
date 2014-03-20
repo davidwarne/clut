@@ -2,6 +2,8 @@
 #include "clut.h"
 #include "clut_internal.h"
 
+
+
 /* CLUT workspace */
 cl_platform_id      clut_global_platform;
 cl_context          clut_global_contexts[CLUT_MAX_NUM_CONTEXTS];
@@ -122,11 +124,12 @@ FCAPI void FCAPIENTRY clutInit(int argc, char ** argv)
 /* Get functions*/
 FCAPI int FCAPIENTRY clutGet(CLenum state)
 {
-    
+    // not really anything to Get yet
 }
 
 FCAPI void* FCAPIENTRY clutContextGet(CLenum info)
 {
+    
 }
 
 FCAPI void* FCAPIENTRY clutPlatformGet(CLenum info)
