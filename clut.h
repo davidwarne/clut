@@ -135,6 +135,9 @@ typedef cl_uint CLenum;
 #else
 #define CL_DEVICE_TYPE_DEFAULT CL_DEVICE_TYPE_GPU
 #endif // #ifdef CL_DEVICE_TYPE_DEFAULT
+#ifndef CLUT_DEFAULT_DEVICE_PROGRAM_BUILD_OPTIONS
+#define     CLUT_DEFAULT_DEVICE_PROGRAM_BUILD_OPTIONS "-cl-fast-relaxed-math"
+#endif // #ifdef CLUT_DEFAULT_PROGRAM_BUILD_OPTIONS
 #endif // #ifdef __NVIDIA__
 
 // AMD settings, currently not supported

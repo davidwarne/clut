@@ -665,25 +665,42 @@ FCAPI int FCAPIENTRY clutExec(const char* name,void ** args, size_t *sizes,int n
     cl_event kernel_event;
     cl_int rc;
     int i;
+    char buffer[256];
+    size_t count;
     if (name != NULL)
     {
-        /*create a new kernel*/
-        if (CLUT_NUM_KERNELS < CLUT_MAX_NUM_KERNELS_PER_DEVICE)
+        /*check if the kernel exists*/
+        for (i=0;i<CLUT_NUM_KERNELS;i++)
         {
-            cl_kernel new_kernel = clCreateKernel( CLUT_CURRENT_PROGRAM,
-                                                   name,
-                                                   &rc
-                                                 ); 
+            CLUT_CURRENT_KERNEL_ID = i;
+            rc = clGetKernelInfo(CLUT_CURRENT_KERNEL,CL_KERNEL_FUNCTION_NAME,256*sizeof(char),buffer,&count);
             if (clut_internal_handle_error(rc)) return 1;
-            /*update the current*/
-            CLUT_CURRENT_KERNEL_ID = CLUT_NUM_KERNELS;
-            CLUT_CURRENT_KERNEL = new_kernel;
-            CLUT_NUM_KERNELS++;
-            CLUT_CURRENT_KERNEL_ARG_COUNT = numargs;
-            for (i=0;i<CLUT_CURRENT_KERNEL_ARG_COUNT;i++)
+            if (strcmp(buffer,name) == 0)
             {
-                CLUT_CURRENT_KERNEL_ARG(i) = args[i];
-                CLUT_CURRENT_KERNEL_ARG_SIZE(i) = sizes[i];
+                break;
+            }
+        }
+
+        if (i >= CLUT_NUM_KERNELS)
+        {
+            /*create a new kernel*/
+            if (CLUT_NUM_KERNELS < CLUT_MAX_NUM_KERNELS_PER_DEVICE)
+            {
+                cl_kernel new_kernel = clCreateKernel( CLUT_CURRENT_PROGRAM,
+                                                       name,
+                                                       &rc
+                                                     ); 
+                if (clut_internal_handle_error(rc)) return 1;
+                /*update the current*/
+                CLUT_CURRENT_KERNEL_ID = CLUT_NUM_KERNELS;
+                CLUT_CURRENT_KERNEL = new_kernel;
+                CLUT_NUM_KERNELS++;
+                CLUT_CURRENT_KERNEL_ARG_COUNT = numargs;
+                for (i=0;i<CLUT_CURRENT_KERNEL_ARG_COUNT;i++)
+                {
+                    CLUT_CURRENT_KERNEL_ARG(i) = args[i];
+                    CLUT_CURRENT_KERNEL_ARG_SIZE(i) = sizes[i];
+                }
             }
         }
     }
