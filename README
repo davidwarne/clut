@@ -1,0 +1,70 @@
++=====================================================================+
+||                 Compute Language Untility Toolkit                 ||
++=====================================================================+
+
+Description:
+------------
+	The Compute Language Utility Toolkit (CLUT) is a library designed to simplify
+    common OpenCL usage patterns. 
+
+Notes:
+------
+    - This code base is very much in a pre-alpha stage of development. It works very 
+      well for simple programs.  
+    - This code base has been tested using the NVIDIA OpenCL SDK and the ALTERA OpenCL SDK.
+
+Installation:
+-------------
+	Linux:
+	- easy for linux users just run make
+		$ make
+
+
+Dependencies:
+------------
+    - OpenCL v 1.2 
+    
+
+Author Information:
+-------------------
+	Name - David J. Warne
+	Email - david.warne@qut.edu.au
+	Uni - The Queensland University of Technology, Brisbane, Australia
+
+
+Examples:
+---------
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <clut.h>
+#define N 128
+#define NARGS 1
+int main(int argc, char **argv)
+{
+    int *A_hostptr;
+    cl_mem A_devptr;
+    size_t size[NARGS];
+    void * args[NARGS];
+    int i;
+
+    clutInit(argc,argv);
+    clutProgramDevice("someKernel.cl",CLUT_SOURCE);
+    
+    A_hostptr = (float*)clutMalloc(N*sizeof(int),CLUT_MALLOC_HOST_PTR);
+    A_devptr = (cl_mem)clutMalloc(N*sizeof(int),CLUT_MALLOC_DEVICE_PTR);
+    
+    for (i=0;i<N;i++)
+    {
+        A_hostptr[i] = i;
+    }
+
+    size[0] = sizeof(cl_mem); 
+    args[0] = (void*)&A_devptr;
+    
+    clutMemcpy((void*)A_devptr,(void*)A_hostptr,N*sizeof(int),CLUT_MEMCPY_HOST2DEVICE);
+    clutExec("myKernelFunc",args,size,1,2,{64,64},{16,16},0);
+    clutWait();
+    clutMemcpy((void*)A_hostptr,(void*)A_devptr,N*sizeof(int),CLUT_MEMCPY_DEVICE2HOST);
+    return 0;
+}
